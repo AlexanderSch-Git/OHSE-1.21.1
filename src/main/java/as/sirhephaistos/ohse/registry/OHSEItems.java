@@ -7,8 +7,6 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemGroups;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.registry.RegistryKeys;
 import net.minecraft.util.Identifier;
 
 /**
@@ -24,20 +22,20 @@ public final class OHSEItems {
     }
 
     public static void register() {
-        ZONE_WAND = registerWand("zone_wand");
+        ZONE_WAND = registerWand();
 
         // Creative tab (dev)
         ItemGroupEvents.modifyEntriesEvent(ItemGroups.TOOLS)
                 .register(entries -> entries.add(ZONE_WAND));
     }
 
-    private static Item registerWand(String path) {
+    private static Item registerWand() {
         // 1. Create the item normally
         Item item = new ZoneWandItem(new Item.Settings().maxCount(1));
         // 2. Register with an Identifier (NOT RegistryKey)
         return Registry.register(
                 Registries.ITEM,
-                Identifier.of(MOD_ID, path),
+                Identifier.of(MOD_ID, "zone_wand"),
                 item
         );
     }

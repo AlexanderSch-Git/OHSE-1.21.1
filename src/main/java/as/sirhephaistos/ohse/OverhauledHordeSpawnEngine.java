@@ -1,5 +1,6 @@
 package as.sirhephaistos.ohse;
 
+import as.sirhephaistos.ohse.command.OHSECommands;
 import as.sirhephaistos.ohse.registry.OHSEItems;
 import net.fabricmc.api.ModInitializer;
 
@@ -24,7 +25,7 @@ public class OverhauledHordeSpawnEngine implements ModInitializer {
         OHSEItems.register();
         LOGGER.info("[OHSE]Items registered.");
         // Register commands
-        OHSEItems.register();
+        OHSECommands.register();
         LOGGER.info("[OHSE]Commands registered.");
         LOGGER.info("[OHSE]Overhauled Horde Spawn Engine initialized.");
 	}
