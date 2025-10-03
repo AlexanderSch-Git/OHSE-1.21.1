@@ -11,7 +11,7 @@ public record ZoneWandMiddleClickPayload(
 )implements CustomPayload {
 
     public static final Id<ZoneWandMiddleClickPayload> ID =
-            new Id<>(Identifier.of("ohse", "zone_wand_remove_ref"));  // Identifier for th
+            new Id<>(Identifier.of("ohse", "zone_wand_middle_click"));  // Identifier for th
 
     public static final PacketCodec<RegistryByteBuf, ZoneWandMiddleClickPayload> CODEC =
             PacketCodec.tuple(

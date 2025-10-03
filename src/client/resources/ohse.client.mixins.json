@@ -3,7 +3,9 @@
 	"package": "as.sirhephaistos.ohse.mixin.client",
 	"compatibilityLevel": "JAVA_21",
 	"client": [
-		"ExampleClientMixin"
+		"ExampleClientMixin",
+        "MouseScrollMixin",
+        "MouseButtonMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1
