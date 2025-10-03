@@ -23,13 +23,13 @@ public final class OHSEDebugClientCommands {
     private OHSEDebugClientCommands() {}
 
     public static void register() {
-        System.out.println("[OHSE debug] Registering Client Debug Commands.");
+        //System.out.println("[OHSE debug] Registering Client Debug Commands.");
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, env) -> register(dispatcher));
-        System.out.println("[OHSE debug] Client Debug Commands registered.");
+        //System.out.println("[OHSE debug] Client Debug Commands registered.");
     }
 
     private static void register(CommandDispatcher<ServerCommandSource> dispatcher){
-        System.out.println("[OHSE debug] Entering command registration.");
+        //System.out.println("[OHSE debug] Entering command registration.");
         dispatcher.register(
                 CommandManager.literal("ohse_debug")
                         .requires(source -> source.hasPermissionLevel(0))
@@ -61,7 +61,7 @@ public final class OHSEDebugClientCommands {
                                                                 ctx.getSource().sendError(Text.literal("[OHSE DEBUG] World is null, cannot add debug cube."));
                                                                 return 0;
                                                             }
-                                                            System.out.printf("%s issued /ohse_debug cube here%n", player.getName());
+                                                            //System.out.printf("%s issued /ohse_debug cube here%n", player.getName());
                                                             var mc = MinecraftClient.getInstance();
                                                             if (mc.crosshairTarget == null || mc.crosshairTarget.getType() != HitResult.Type.BLOCK) {
                                                                 if (mc.player == null)
@@ -95,7 +95,7 @@ public final class OHSEDebugClientCommands {
                                                                 ctx.getSource().sendError(Text.literal("[OHSE] Player only command. used from console?"));
                                                                 return 0;
                                                             }
-                                                            System.out.printf("%s issued /ohse_debug cube clear%n", player.getName());
+                                                            //System.out.printf("%s issued /ohse_debug cube clear%n", player.getName());
                                                             int cubesCleared = CubeDebugManager.getPositions().size();
                                                             CubeDebugManager.clear();
                                                             player.sendMessage(Text.literal(String.format(

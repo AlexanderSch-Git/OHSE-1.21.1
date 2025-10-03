@@ -13,6 +13,6 @@ public class OverhauledHordeSpawnEngineClient implements ClientModInitializer {
         DebugCubeRenderer.register();
         DebugLineRenderer.register();
         // print a log to confirm that the client has been initialized
-        System.out.println("OHSE Client Initialized");
+        //System.out.println("OHSE Client Initialized");
 	}
 }
