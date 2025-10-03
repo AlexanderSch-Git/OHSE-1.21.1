@@ -12,6 +12,7 @@ import java.util.Optional;
 // it contains the click type (left, right, middle) and the block position if any
 public record ZoneWandClickPayload(
         int clickType,                 // 0=LEFT, 1=RIGHT, 2=MIDDLE
+        int faceId,                    // Direction.getId()
         Optional<BlockPos> pos
 ) implements CustomPayload {
 
@@ -28,6 +29,7 @@ public record ZoneWandClickPayload(
     public static final PacketCodec<RegistryByteBuf, ZoneWandClickPayload> CODEC =
             PacketCodec.tuple(
                     PacketCodecs.VAR_INT, ZoneWandClickPayload::clickType,
+                    PacketCodecs.VAR_INT, ZoneWandClickPayload::faceId,
                     PacketCodecs.optional(BlockPos.PACKET_CODEC), ZoneWandClickPayload::pos,
                     ZoneWandClickPayload::new
             );

@@ -1,4 +1,4 @@
-package as.sirhephaistos.ohse.client.debug.utilyclasses;
+package as.sirhephaistos.ohse.client.debug.utilityClasses;
 
 public class UtilsLinePoint {
     public final double x;

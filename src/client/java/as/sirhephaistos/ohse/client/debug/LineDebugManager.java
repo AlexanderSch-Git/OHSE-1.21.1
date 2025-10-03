@@ -1,7 +1,7 @@
 package as.sirhephaistos.ohse.client.debug;
 
-import as.sirhephaistos.ohse.client.debug.utilyclasses.UtilsLinePoint;
-import as.sirhephaistos.ohse.client.debug.utilyclasses.UtilsLinesInfos;
+import as.sirhephaistos.ohse.client.debug.utilityClasses.UtilsLinePoint;
+import as.sirhephaistos.ohse.client.debug.utilityClasses.UtilsLinesInfos;
 
 import java.util.ArrayList;
 import java.util.List;

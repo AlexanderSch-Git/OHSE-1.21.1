@@ -9,6 +9,7 @@ import net.minecraft.util.math.BlockPos;
 
 public record ZoneWandPlaceARefPayload (
         BlockPos pos,
+        int faceId, // Direction.getId()
         float red,
         float green,
         float blue,
@@ -21,6 +22,7 @@ public record ZoneWandPlaceARefPayload (
     public static final PacketCodec<RegistryByteBuf, ZoneWandPlaceARefPayload> CODEC =
             PacketCodec.tuple(
                     BlockPos.PACKET_CODEC, ZoneWandPlaceARefPayload::pos,
+                    PacketCodecs.VAR_INT, ZoneWandPlaceARefPayload::faceId,
                     PacketCodecs.FLOAT, ZoneWandPlaceARefPayload::red,
                     PacketCodecs.FLOAT, ZoneWandPlaceARefPayload::green,
                     PacketCodecs.FLOAT, ZoneWandPlaceARefPayload::blue,
