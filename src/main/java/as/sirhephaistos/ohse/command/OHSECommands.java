@@ -15,13 +15,13 @@ public final class OHSECommands {
     private OHSECommands() {}
 
     public static void register() {
-        System.out.println("[OHSE]Registering Commands.");
+//        System.out.println("[OHSE]Registering Commands.");
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, env) -> register(dispatcher));
-        System.out.println("[OHSE]Commands registered.");
+//        System.out.println("[OHSE]Commands registered.");
     }
 
     private static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
-        System.out.println("[OHSE] Entering command registration.");
+//        System.out.println("[OHSE] Entering command registration.");
         dispatcher.register(
                 CommandManager.literal("ohse")
                         .requires(source -> source.hasPermissionLevel(0))
@@ -36,7 +36,7 @@ public final class OHSECommands {
                                 })
                                 .then(CommandManager.literal("give")
                                         .executes(ctx -> {
-                                            System.out.println("[OHSE]Giving a Wand.");
+//                                            System.out.println("[OHSE]Giving a Wand.");
                                             ServerPlayerEntity player = ctx.getSource().getPlayer();
                                             if (player == null) {
                                                 ctx.getSource().sendError(Text.literal("[OHSE] Player only command. used from console?"));

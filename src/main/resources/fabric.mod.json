@@ -19,7 +19,8 @@
 			"as.sirhephaistos.ohse.OverhauledHordeSpawnEngine"
 		],
 		"client": [
-			"as.sirhephaistos.ohse.OverhauledHordeSpawnEngineClient"
+			"as.sirhephaistos.ohse.OverhauledHordeSpawnEngineClient",
+            "as.sirhephaistos.ohse.client.WandClient"
 		],
 		"fabric-datagen": [
 			"as.sirhephaistos.ohse.OverhauledHordeSpawnEngineDataGenerator"
