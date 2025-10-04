@@ -88,11 +88,8 @@ public final class OHSECommands {
                 .executes(ctx -> {
                     var c = OHSEConfig.get();
                     ctx.getSource().sendFeedback(() -> Text.literal(
-                            "[OHSE] Config:\n" +
-                                    "  maxRaycastDistance = " + c.maxRaycastDistance + "\n" +
-                                    "  scrollStep         = " + c.scrollStep + "\n" +
-                                    "  sprintMultiplier   = " + c.ctrlMultiplier + "\n" +
-                                    "  sneakMultiplier    = " + c.shiftMultiplier
+                            "[OHSE] Config:\n  maxRaycastDistance = %s\n  sprintMultiplier   = %d\n  sneakMultiplier    = %d"
+                                    .formatted(c.maxRaycastDistance, c.ctrlMultiplier, c.shiftMultiplier)
                     ), false);
                     return 1;
                 });
