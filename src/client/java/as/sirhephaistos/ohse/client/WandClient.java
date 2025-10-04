@@ -14,12 +14,22 @@ import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
 
 import static net.minecraft.util.math.Direction.UP;
 
+/**
+ * Handles client-side logic for the Zone Wand, including input handling and communication with the server.
+ * This class is set as the entry point in the `fabric.mod.json` file.
+ */
 public class WandClient implements ClientModInitializer {
+
+    /**
+     * Initializes the client-side logic for the Zone Wand.
+     * Registers event listeners and network handlers.
+     */
     @Override
     public void onInitializeClient() {
         ClientTickEvents.END_CLIENT_TICK.register(this::tick);
@@ -28,105 +38,139 @@ public class WandClient implements ClientModInitializer {
         initWandRemoveARefHandler();
         initWandMiddleClickHandler();
     }
+
+    // Used as a simple state machine to track scroll direction while buffering multiple scroll events
     private static int pendingScrollDir = 0;
+
+    /**
+     * Handles scroll events for the Zone Wand.
+     * @param vertical Positive for scroll up, negative for scroll down.
+     */
     public static void onScroll(double vertical) {
         if (vertical > 0) pendingScrollDir = +1;
         else if (vertical < 0) pendingScrollDir = -1;
     }
 
+    // Used to track previous button states for edge detection preventing multiple clicks per press
     private boolean prevLeft, prevRight, prevMiddle;
-
     private static boolean pendingMiddleClick = false;
+
+    /**
+     * Sets the pending middle click state.
+     * This is useful for triggering middle-click actions programmatically.
+     * @param pendingMiddleClick true to simulate a middle click, false otherwise.
+     */
     public static void setPendingMiddleClick(boolean pendingMiddleClick) {
         WandClient.pendingMiddleClick = pendingMiddleClick;
     }
+
+    /**
+     * Checks if a middle click action is pending.
+     * @return true if a middle click action is pending, false otherwise.
+     */
     public static boolean isPendingMiddleClick() {
         return pendingMiddleClick;
     }
 
+    // Used to simulate left click actions programmatically
     private static boolean pendingLeftClick = false;
+
+    /**
+     * Sets the pending left click state.
+     * This is useful for triggering left-click actions programmatically.
+     * @param pendingLeftClick true to simulate a left click, false otherwise.
+     */
     public static void setPendingLeftClick(boolean pendingLeftClick) {
         WandClient.pendingLeftClick = pendingLeftClick;
     }
+
+    /**
+     * Checks if a left click action is pending.
+     * @return true if a left click action is pending, false otherwise.
+     */
     public static boolean isPendingLeftClick() {
         return pendingLeftClick;
     }
 
-    private void tick(MinecraftClient client) {
+    /**
+     * Handles the main logic for the Zone Wand during each client tick.
+     * Processes input events and sends appropriate payloads to the server.
+     * @param client The Minecraft client instance.
+     */
+    private void tick(@NotNull MinecraftClient client) {
         if (client.player == null || client.world == null) return;
 
+        // Check if the player is holding the Zone Wand
         ItemStack held = client.player.getMainHandStack();
         if (held.isEmpty() || held.getItem() != OHSEItems.ZONE_WAND) return;
 
+        // Handle input states
         boolean leftNow   = client.options.attackKey.isPressed() || pendingLeftClick;
         pendingLeftClick = false; // reset
         boolean rightNow  = client.options.useKey.isPressed();
         boolean middleNow = client.options.pickItemKey.isPressed() || pendingMiddleClick;
         pendingMiddleClick = false; // reset
 
+        // Detect edge clicks
         boolean leftClick   = leftNow && !prevLeft;
         boolean rightClick  = rightNow && !prevRight;
         boolean middleClick = middleNow && !prevMiddle;
 
+        // Update previous states
         prevLeft = leftNow;
         prevRight = rightNow;
         prevMiddle = middleNow;
 
+        // Handle scroll events
         if (pendingScrollDir != 0) {
-            int type = pendingScrollDir ;
+            int type = pendingScrollDir;
             pendingScrollDir = 0;
-            //client.player.sendMessage(Text.literal("[OHSE] Scroll Dir: " + type), false);
             ClientPlayNetworking.send(new ZoneWandMiddleScrollCLIENTPayload(type));
         }
 
+        // Ignore if no valid click is detected
         if (!(leftClick || rightClick || middleClick)) return;
         if (leftClick && rightClick) return;
 
+        // Determine click type
         int clickType = middleClick ? 2 : (rightClick ? 1 : 0);
 
+        // Perform raycast to determine hit position
         HitResult hit = client.player.raycast(256.0, 0.0f, false);
-        //client.player.sendMessage(Text.of("POS%s".formatted(hit.getPos())), false);
         Optional<BlockPos> posOpt = Optional.empty();
         int faceId = -1;
-        //System.out.println("Hit face: " + faceId);
+
         if (hit.getType() == HitResult.Type.BLOCK) {
             BlockHitResult blockHitResult = (BlockHitResult) hit;
-            faceId = blockHitResult .getSide().getId();
-            //client.player.sendMessage(Text.of("BLOCK%s".formatted(blockHitResult.getSide())), false);
+            faceId = blockHitResult.getSide().getId();
             Vec3d pos3d = hit.getPos();
             BlockPos pos = new BlockPos(
-                    (int)Math.floor(pos3d.x),
-                    (int)Math.floor(pos3d.y),
-                    (int)Math.floor(pos3d.z)
+                    (int) Math.floor(pos3d.x),
+                    (int) Math.floor(pos3d.y),
+                    (int) Math.floor(pos3d.z)
             );
-            // If the hit side is UP, we want the block below the hit position
+            // Adjust position if the hit side is UP
             if (blockHitResult.getSide() == UP) {
                 pos = pos.down();
             }
             posOpt = Optional.of(pos);
         }
 
-        //System.out.println("Hit face: " + faceId);
-
-        ClientPlayNetworking.send(new ZoneWandClickPayload(clickType,faceId, posOpt));
-        //System.out.println("[OHSE] Sent wand click type=" + clickType + " pos=" + posOpt);
+        // Send click payload to the server
+        ClientPlayNetworking.send(new ZoneWandClickPayload(clickType, faceId, posOpt));
     }
-    private void initWandPlaceARefHandler(){
+
+    /**
+     * Initializes the handler for the Zone Wand "Place ARef" action.
+     * Registers a global receiver for the corresponding payload.
+     */
+    private void initWandPlaceARefHandler() {
         ClientPlayNetworking.registerGlobalReceiver(ZoneWandPlaceARefPayload.ID, (payload, ctx) -> MinecraftClient.getInstance().execute(() -> {
             int x = payload.pos().getX();
             int y = payload.pos().getY();
             int z = payload.pos().getZ();
-            float red = payload.red();
-            float green = payload.green();
-            float blue = payload.blue();
-            float alpha = payload.alpha();
-            // Add a debug cube at the given position
-            // For now, just print a message
+
             if (MinecraftClient.getInstance().player != null) {
-//                MinecraftClient.getInstance().player.sendMessage(
-//                        Text.literal("[OHSE] Received ZoneWandPlaceARefPayload for pos " + x + "," + y + "," + z),
-//                        false
-//                );
                 try {
                     ZoneManager.addRef(new BetterPosition(x, y, z, payload.faceId()));
                 } catch (IllegalArgumentException e) {
@@ -138,42 +182,59 @@ public class WandClient implements ClientModInitializer {
             }
         }));
     }
+
+    /**
+     * Initializes the handler for the Zone Wand "Remove ARef" action.
+     * Registers a global receiver for the corresponding payload.
+     */
     private void initWandRemoveARefHandler() {
         ClientPlayNetworking.registerGlobalReceiver(ZoneWandRemoveARefPayload.ID, (payload, ctx) -> MinecraftClient.getInstance().execute(() -> {
             BlockPos pos = payload.pos();
-            // ex: CubeDebugManager.removeCube(pos);
-
             var mc = MinecraftClient.getInstance();
             if (mc.player != null) {
-//                mc.player.sendMessage(Text.literal(
-//                        "[OHSE] Received ZoneWandRemoveARefPayload for pos " +
-//                                pos.getX() + "," + pos.getY() + "," + pos.getZ()), false);
                 ZoneManager.removeLastRef();
             }
         }));
     }
+
+    /**
+     * Initializes the handler for the Zone Wand scroll action.
+     * Registers a global receiver for the corresponding payload.
+     */
     private void initWandScrollHandler() {
         ClientPlayNetworking.registerGlobalReceiver(ZoneWandMiddleScrollCLIENTPayload.ID, (payload, ctx) -> MinecraftClient.getInstance().execute(() -> {
             int dir = payload.direction();
             var mc = MinecraftClient.getInstance();
-//            if (mc.player != null) {
-//                mc.player.sendMessage(Text.literal("[OHSE] Received ZoneWandMiddleScrollCLIENTPayload with dir " + dir), false);
-//            }
-            if (ZoneManager.isEditingPositiveY()){
-                ZoneManager.setLargestY(ZoneManager.getLargestY()+dir);
-            }else{
-                ZoneManager.setSmallestY(ZoneManager.getSmallestY()+dir);
-                ZoneManager.setAllYtoSmallestY();
+            if (ZoneManager.isEditingPositiveY()) {
+                var oldLargestY = ZoneManager.getLargestY();
+                if (oldLargestY + dir < ZoneManager.getSmallestY()) {
+                    assert mc.player != null;
+                    mc.player.sendMessage(Text.literal("[OHSE] Cannot set Top Y below Down Y"), false);
+                    return;
+                }
+                ZoneManager.setLargestY(oldLargestY + dir);
+            } else {
+                var oldSmallestY = ZoneManager.getSmallestY();
+                if (oldSmallestY + dir > ZoneManager.getLargestY()) {
+                    assert mc.player != null;
+                    mc.player.sendMessage(Text.literal("[OHSE] Cannot set Down Y above Top Y"), false);
+                    return;
+                }
+                ZoneManager.setSmallestY(oldSmallestY + dir);
             }
         }));
     }
+
+    /**
+     * Initializes the handler for the Zone Wand middle click action.
+     * Registers a global receiver for the corresponding payload.
+     */
     private void initWandMiddleClickHandler() {
         ClientPlayNetworking.registerGlobalReceiver(ZoneWandMiddleClickPayload.ID, (payload, ctx) -> MinecraftClient.getInstance().execute(() -> {
             var mc = MinecraftClient.getInstance();
             if (mc.player != null) {
-//                mc.player.sendMessage(Text.literal("[OHSE] Received ZoneWandMiddleClickPayload"), false);
                 ZoneManager.setEditingPositiveY(!ZoneManager.isEditingPositiveY());
-                            mc.player.sendMessage(Text.literal("[OHSE] Now editing " + (ZoneManager.isEditingPositiveY() ? "Top" : "Down") + " Y"), false);
+                mc.player.sendMessage(Text.literal("[OHSE] Now editing " + (ZoneManager.isEditingPositiveY() ? "Top" : "Down") + " Y"), false);
             }
         }));
     }
