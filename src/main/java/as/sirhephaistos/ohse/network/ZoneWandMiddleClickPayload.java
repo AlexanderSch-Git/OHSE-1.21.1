@@ -2,12 +2,14 @@ package as.sirhephaistos.ohse.network;
 
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
+import net.minecraft.network.codec.PacketCodecs;
 import net.minecraft.network.packet.CustomPayload;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.math.BlockPos;
 
 public record ZoneWandMiddleClickPayload(
-        BlockPos pos
+        double hitX,
+        double hitY,
+        double hitZ
 )implements CustomPayload {
 
     public static final Id<ZoneWandMiddleClickPayload> ID =
@@ -15,7 +17,9 @@ public record ZoneWandMiddleClickPayload(
 
     public static final PacketCodec<RegistryByteBuf, ZoneWandMiddleClickPayload> CODEC =
             PacketCodec.tuple(
-                    BlockPos.PACKET_CODEC, ZoneWandMiddleClickPayload::pos,
+                    PacketCodecs.DOUBLE, ZoneWandMiddleClickPayload::hitX,
+                    PacketCodecs.DOUBLE, ZoneWandMiddleClickPayload::hitY,
+                    PacketCodecs.DOUBLE, ZoneWandMiddleClickPayload::hitZ,
                     ZoneWandMiddleClickPayload::new
             );
 
