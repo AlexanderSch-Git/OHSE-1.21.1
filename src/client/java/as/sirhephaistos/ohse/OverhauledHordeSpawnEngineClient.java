@@ -7,14 +7,15 @@ import as.sirhephaistos.ohse.client.render.ZoneRenderer;
 import net.fabricmc.api.ClientModInitializer;
 
 public class OverhauledHordeSpawnEngineClient implements ClientModInitializer {
-	@Override
-	public void onInitializeClient() {
-		// This entrypoint is suitable for setting up client-specific logic, such as rendering.
-        OHSEDebugClientCommands.register();
-        DebugCubeRenderer.register();
-        DebugLineRenderer.register();
-        ZoneRenderer.register();
-        // print a log to confirm that the client has been initialized
-        //System.out.println("OHSE Client Initialized");
-	}
+    /***
+     * This method is called when the mod is initialized on the client side.
+     * It is used to set up client-specific features such as rendering and client-side commands.
+     */
+    @Override
+    public void onInitializeClient() {
+        OHSEDebugClientCommands.register(); // Register client-side debug commands
+        DebugCubeRenderer.register(); // Register the debug cube renderer
+        DebugLineRenderer.register(); // Register the debug line renderer
+        ZoneRenderer.register(); // Register the zone renderer
+    }
 }
