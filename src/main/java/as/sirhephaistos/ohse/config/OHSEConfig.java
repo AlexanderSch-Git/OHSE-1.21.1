@@ -106,9 +106,6 @@ public final class OHSEConfig {
         if (data.maxRaycastDistance > 1024.0) {
             throw new IllegalStateException("Invalid config: maxRaycastDistance too large (max 1024.0)");
         }
-        if (data.scrollStep <= 0) {
-            throw new IllegalStateException("Invalid config: scrollStep must be positive");
-        }
         if (data.ctrlMultiplier <= 0) {
             throw new IllegalStateException("Invalid config: ctrlMultiplier must be positive");
         }

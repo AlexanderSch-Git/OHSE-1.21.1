@@ -1,6 +1,7 @@
 package as.sirhephaistos.ohse.client;
 
 import as.sirhephaistos.ohse.client.utilityClasses.BetterPosition;
+import as.sirhephaistos.ohse.config.OHSEConfig;
 import as.sirhephaistos.ohse.network.*;
 import as.sirhephaistos.ohse.registry.OHSEItems;
 import as.sirhephaistos.ohse.zone.ZoneManager;
@@ -44,8 +45,8 @@ public class WandClient implements ClientModInitializer {
     public static void onScroll(double vertical, boolean isCtrlDown,boolean isShiftDown) {
         if (vertical > 0) pendingScrollDir =  1;
         else if (vertical < 0) pendingScrollDir = -1;
-        pendingScrollDir = isCtrlDown ? pendingScrollDir * 5 : pendingScrollDir;
-        pendingScrollDir = isShiftDown ? pendingScrollDir * 10 : pendingScrollDir;
+        pendingScrollDir = isCtrlDown ? pendingScrollDir *  OHSEConfig.get().ctrlMultiplier: pendingScrollDir;
+        pendingScrollDir = isShiftDown ? pendingScrollDir * OHSEConfig.get().shiftMultiplier: pendingScrollDir;
     }
 
     // Used to simulate clicks actions programmatically
@@ -115,7 +116,7 @@ public class WandClient implements ClientModInitializer {
         }
 
         // Perform raycast to determine hit position
-        HitResult hit = client.player.raycast(256.0, 0.0f, false);
+        HitResult hit = client.player.raycast(OHSEConfig.get().maxRaycastDistance,0.0f, false);
         if (hit.getType() == HitResult.Type.BLOCK) {
             BlockHitResult bhr = (BlockHitResult) hit;
             // Send click payload to the server
