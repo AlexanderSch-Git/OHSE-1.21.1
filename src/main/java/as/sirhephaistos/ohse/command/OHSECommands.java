@@ -1,5 +1,6 @@
 package as.sirhephaistos.ohse.command;
 
+import as.sirhephaistos.ohse.config.OHSEConfig;
 import as.sirhephaistos.ohse.registry.OHSEItems;
 import com.mojang.brigadier.CommandDispatcher;
 import me.lucko.fabric.api.permissions.v0.Permissions;
@@ -14,14 +15,23 @@ import static net.minecraft.server.command.CommandManager.literal;
 public final class OHSECommands {
     private OHSECommands() {}
 
+    /**
+     * Registers the OHSE commands with the Minecraft command dispatcher.
+     * This method should be called during server initialization to ensure
+     * the commands are available to players with the appropriate permissions.
+     */
     public static void register() {
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, env) -> register(dispatcher));
     }
 
+    /**
+     * Helper method to build and register the command tree.
+     * @param dispatcher the command dispatcher to register commands with.
+     */
     private static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
         // --- /ohse base literal
         var ohse = literal("ohse")
-                .requires(src -> Permissions.check(src, "ohse-admin", 0)) // Permission level 2 (command blocks, server operators)
+                .requires(src -> Permissions.check(src, "ohse-admin", 3)) // Permission level 2 (command blocks, server operators)
                 .executes(ctx -> {
                     ctx.getSource().sendFeedback(() -> Text.literal("[OHSE] Root command"), false);
                     return 1;
@@ -29,6 +39,7 @@ public final class OHSECommands {
 
         // --- /ohse wand
         var wand = literal("wand")
+                .requires(src -> Permissions.check(src, "ohse-admin", 3))
                 .executes(ctx -> {
                     ctx.getSource().sendFeedback(() -> Text.literal("[OHSE] /ohse wand <subcommand>"), false);
                     return 1;
@@ -36,6 +47,7 @@ public final class OHSECommands {
 
         // --- /ohse wand give
         var give = literal("give")
+                .requires(src -> Permissions.check(src, "ohse-admin", 3))
                 .executes(ctx -> {
                     ServerPlayerEntity player = ctx.getSource().getPlayer();
                     if (player == null) {
@@ -52,6 +64,7 @@ public final class OHSECommands {
 
         // --- /ohse validate
         var validate = literal("validate")
+                .requires(src -> Permissions.check(src, "ohse-admin", 3))
                 .executes(ctx -> {
                     ctx.getSource().sendFeedback(() -> Text.literal("[OHSE] /ohse validate executed"), false);
                     return 1;
@@ -59,6 +72,7 @@ public final class OHSECommands {
 
         // --- /ohse help
         var help = literal("help")
+                .requires(src -> Permissions.check(src, "ohse-admin", 3))
                 .executes(ctx -> {
                     var src = ctx.getSource();
                     src.sendFeedback(() -> Text.literal("[OHSE] Available commands:"), false);
@@ -68,11 +82,43 @@ public final class OHSECommands {
                     return 1;
                 });
 
+        // dans OHSECommands.register(...)
+        var cfgShow = literal("show")
+                .requires(src -> Permissions.check(src, "ohse-admin", 3))
+                .executes(ctx -> {
+                    var c = OHSEConfig.get();
+                    ctx.getSource().sendFeedback(() -> Text.literal(
+                            "[OHSE] Config:\n" +
+                                    "  maxRaycastDistance = " + c.maxRaycastDistance + "\n" +
+                                    "  scrollStep         = " + c.scrollStep + "\n" +
+                                    "  sprintMultiplier   = " + c.ctrlMultiplier + "\n" +
+                                    "  sneakMultiplier    = " + c.shiftMultiplier
+                    ), false);
+                    return 1;
+                });
+
+        var cfgReload = literal("reload")
+                .requires(src -> Permissions.check(src, "ohse-admin", 3))
+                .executes(ctx -> {
+                    as.sirhephaistos.ohse.config.OHSEConfig.reload();
+                    ctx.getSource().sendFeedback(() -> Text.literal("[OHSE] Config reloaded."), false);
+                    return 1;
+                });
+
+        var cfg = literal("config")
+                .requires(src -> Permissions.check(src, "ohse-admin", 3))
+                .requires(src -> src.hasPermissionLevel(2))
+                .then(cfgShow)
+                .then(cfgReload);
+
+
+
         // On assemble l’arbre :
         wand.then(give);         // /ohse wand give
         ohse.then(wand);         // /ohse wand
         ohse.then(validate);     // /ohse validate
         ohse.then(help);         // /ohse help
+        ohse.then(cfg);
 
         // Enregistrement final
         dispatcher.register(ohse);

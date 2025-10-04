@@ -8,7 +8,6 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.DoubleArgumentType;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
@@ -152,22 +151,10 @@ public final class OHSEDebugClientCommands {
 
         var wandclear = literal("wandclear")
                 .executes(ctx -> {
-                    ctx.getSource().sendFeedback(() -> Text.literal(
-                            "[OHSE DEBUG] Before Largest Y%d, Smallest Y%d, editingPositiveY %s. Theres is %d positions stored. Current offsets: +%d/-%d"
-                            .formatted(ZoneManager.getLargestY(), ZoneManager.getSmallestY(), ZoneManager.isEditingPositiveY(),
-                            ZoneManager.getBottomPositions().size(), ZoneManager.getCurrentYPositiveOffset(), ZoneManager.getCurrentYNegativeOffset())
-                    ), false);
-                    ZoneManager.setLargestY(0);
                     ZoneManager.setSmallestY(0);
                     ZoneManager.clear();
                     ZoneManager.setEditingPositiveY(true);
-                    ZoneManager.setCurrentYNegativeOffset(0);
-                    ZoneManager.setCurrentYPositiveOffset(0);
-                    ctx.getSource().sendFeedback(() -> Text.literal(
-                            "[OHSE DEBUG] Now Largest Y%d, Smallest Y%d, editingPositiveY %s. Theres is %d positions stored. Current offsets: +%d/-%d"
-                                    .formatted(ZoneManager.getLargestY(), ZoneManager.getSmallestY(), ZoneManager.isEditingPositiveY(),
-                                            ZoneManager.getBottomPositions().size(), ZoneManager.getCurrentYPositiveOffset(), ZoneManager.getCurrentYNegativeOffset())
-                    ), false);
+                    ZoneManager.setYOffset(0);
                     return 1;
                 });
 

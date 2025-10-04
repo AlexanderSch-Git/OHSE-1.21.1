@@ -5,15 +5,13 @@ import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.network.codec.PacketCodecs;
 import net.minecraft.network.packet.CustomPayload;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.math.BlockPos;
 
-import java.util.Optional;
-//this payload C2S packet is sent when the player clicks with the zone wand
-// it contains the click type (left, right, middle) and the block position if any
 public record ZoneWandClickPayload(
-        int clickType,                 // 0=LEFT, 1=RIGHT, 2=MIDDLE
-        int faceId,                    // Direction.getId()
-        Optional<BlockPos> pos
+        int clickType,
+        int faceId,
+        double hitX,
+        double hitY,
+        double hitZ
 ) implements CustomPayload {
 
     public static final Id<ZoneWandClickPayload> ID =
@@ -30,7 +28,9 @@ public record ZoneWandClickPayload(
             PacketCodec.tuple(
                     PacketCodecs.VAR_INT, ZoneWandClickPayload::clickType,
                     PacketCodecs.VAR_INT, ZoneWandClickPayload::faceId,
-                    PacketCodecs.optional(BlockPos.PACKET_CODEC), ZoneWandClickPayload::pos,
+                    PacketCodecs.DOUBLE, ZoneWandClickPayload::hitX,
+                    PacketCodecs.DOUBLE, ZoneWandClickPayload::hitY,
+                    PacketCodecs.DOUBLE, ZoneWandClickPayload::hitZ,
                     ZoneWandClickPayload::new
             );
 
