@@ -1,10 +1,17 @@
 package as.sirhephaistos.ohse.zone;
 
 import as.sirhephaistos.ohse.client.utilityClasses.BetterPosition;
+import as.sirhephaistos.ohse.network.XZ;
+import as.sirhephaistos.ohse.network.ZoneRecuperationClientResponsePayload;
 import lombok.Getter;
 import lombok.Setter;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
+import org.jetbrains.annotations.NotNull;
+import oshi.util.tuples.Pair;
 
 import java.util.LinkedList;
+import java.util.List;
 
 /**
  * The ZoneManager class manages a collection of BetterPosition objects, representing positions in a zone.
@@ -98,5 +105,27 @@ public final class ZoneManager {
      */
     public static int positionsSize() {
         return bottomPositions.size();
+    }
+
+    public static @NotNull String validateCurrentZone(String zoneName) {
+        StringBuilder report = new StringBuilder();
+        if (bottomPositions.isEmpty()) {
+            report.append("[OHSE] No positions defined in the zone.\n");
+            return report.toString();
+        }
+        try{
+            List<XZ> xzList = bottomPositions.stream()
+                .map(bp -> new XZ(bp.getX(),bp.getZ())).toList();
+            ClientPlayNetworking.send(new ZoneRecuperationClientResponsePayload(zoneName,
+                xzList,ZoneManager.getSmallestY(), ZoneManager.getSmallestY()+getYOffset()));
+            //ZoneManager.clear();
+        }
+        catch (Exception e) {
+            report.append("[OHSE] An error occurred during validation: ").append(e.getMessage()).append("\n");
+        }
+        if (report.isEmpty()) {
+            report.append("[OHSE] Zone validation passed. No issues found.\n");
+        }
+        return report.toString();
     }
 }
