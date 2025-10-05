@@ -33,6 +33,7 @@ public class WandClient implements ClientModInitializer {
         initWandPlaceARefHandler();
         initWandRemoveARefHandler();
         initWandMiddleClickHandler();
+        initZoneRecuperationHandler();
     }
 
     // Used as a simple state machine to track scroll direction while buffering multiple scroll events
@@ -222,6 +223,16 @@ public class WandClient implements ClientModInitializer {
             if (mc.player != null) {
                 ZoneManager.setEditingPositiveY(!ZoneManager.isEditingPositiveY());
                 mc.player.sendMessage(Text.literal("[OHSE] Now editing " + (ZoneManager.isEditingPositiveY() ? "Top" : "Down") + " Y"), false);
+            }
+        }));
+    }
+
+    /** Intializes the handler for the Zone Wand "Validate Zone" action.*/
+    private void  initZoneRecuperationHandler() {
+        ClientPlayNetworking.registerGlobalReceiver(ZoneWandInitRecuperationPayload.ID, (payload, ctx) -> MinecraftClient.getInstance().execute(() -> {
+            var mc = MinecraftClient.getInstance();
+            if (mc.player != null) {
+                mc.player.sendMessage(Text.of(ZoneManager.validateCurrentZone(payload.zoneName())), false);
             }
         }));
     }

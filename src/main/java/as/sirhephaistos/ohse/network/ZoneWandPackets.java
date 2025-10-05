@@ -1,5 +1,6 @@
 package as.sirhephaistos.ohse.network;
 
+import as.sirhephaistos.ohse.zoneSrv.ZManager;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.minecraft.text.Text;
 
@@ -66,6 +67,16 @@ public class ZoneWandPackets {
                 send(player, new ZoneWandMiddleScrollCLIENTPayload(dir));
             });
         });
+
+
+
+        // ZoneWandPackets.registerC2SPackets()
+        PayloadTypeRegistry.playC2S().register(
+                ZoneRecuperationClientResponsePayload.ID,
+                ZoneRecuperationClientResponsePayload.CODEC
+        );
+        ZManager
+        registerGlobalReceiver(ZoneRecuperationClientResponsePayload.ID, ZManager::createZone);
     }
 
     /**
@@ -96,6 +107,12 @@ public class ZoneWandPackets {
         PayloadTypeRegistry.playS2C().register(
                 ZoneWandMiddleClickPayload.ID,
                 ZoneWandMiddleClickPayload.CODEC
+        );
+
+        // Register the ZoneWandInitRecuperationPayload packet type
+        PayloadTypeRegistry.playS2C().register(
+                ZoneWandInitRecuperationPayload.ID,
+                ZoneWandInitRecuperationPayload.CODEC
         );
     }
 

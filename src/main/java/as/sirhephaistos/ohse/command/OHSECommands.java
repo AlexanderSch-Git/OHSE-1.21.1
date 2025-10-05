@@ -1,11 +1,15 @@
 package as.sirhephaistos.ohse.command;
 
 import as.sirhephaistos.ohse.config.OHSEConfig;
+import as.sirhephaistos.ohse.network.ZoneWandInitRecuperationPayload;
 import as.sirhephaistos.ohse.registry.OHSEItems;
 import com.mojang.brigadier.CommandDispatcher;
+import com.mojang.brigadier.arguments.StringArgumentType;
 import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.item.ItemStack;
+import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
@@ -65,10 +69,21 @@ public final class OHSECommands {
         // --- /ohse validate
         var validate = literal("validate")
                 .requires(src -> Permissions.check(src, "ohse-admin", 3))
-                .executes(ctx -> {
-                    ctx.getSource().sendFeedback(() -> Text.literal("[OHSE] /ohse validate executed"), false);
-                    return 1;
-                });
+                .then(CommandManager.argument("zoneName", StringArgumentType.word())
+                        .executes(ctx -> {
+                            String zoneName = StringArgumentType.getString(ctx, "zoneName");
+                            ctx.getSource().sendFeedback(
+                                    () -> Text.literal("[OHSE] Starting zone validation for: " + zoneName),
+                                    false
+                            );
+                            ServerPlayerEntity player = ctx.getSource().getPlayer();
+                            if (player != null) {
+                                ServerPlayNetworking.send(player, new ZoneWandInitRecuperationPayload(zoneName));
+                            }
+                            return 1;
+                        })
+                );
+
 
         // --- /ohse help
         var help = literal("help")
