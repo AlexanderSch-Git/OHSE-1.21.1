@@ -75,7 +75,9 @@ public class ZoneWandPackets {
                 ZoneRecuperationClientResponsePayload.ID,
                 ZoneRecuperationClientResponsePayload.CODEC
         );
-        registerGlobalReceiver(ZoneRecuperationClientResponsePayload.ID, ZManager::createZone);
+        registerGlobalReceiver(ZoneRecuperationClientResponsePayload.ID,
+            (payload,
+            ctx) -> ZManager.getInstance().createZone(payload, ctx));
     }
 
     /**
