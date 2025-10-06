@@ -4,7 +4,6 @@ import as.sirhephaistos.ohse.client.command.OHSEDebugClientCommands;
 import as.sirhephaistos.ohse.client.render.DebugCubeRenderer;
 import as.sirhephaistos.ohse.client.render.DebugLineRenderer;
 import as.sirhephaistos.ohse.client.render.ZoneRenderer;
-import as.sirhephaistos.ohse.zoneSrv.ZManager;
 import net.fabricmc.api.ClientModInitializer;
 
 public class OverhauledHordeSpawnEngineClient implements ClientModInitializer {
