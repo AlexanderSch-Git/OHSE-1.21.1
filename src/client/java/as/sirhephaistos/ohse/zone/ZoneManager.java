@@ -6,9 +6,7 @@ import as.sirhephaistos.ohse.network.ZoneRecuperationClientResponsePayload;
 import lombok.Getter;
 import lombok.Setter;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import org.jetbrains.annotations.NotNull;
-import oshi.util.tuples.Pair;
 
 import java.util.LinkedList;
 import java.util.List;
