@@ -6,15 +6,17 @@ import org.jetbrains.annotations.NotNull;
 
 @SuppressWarnings("unused")
 public final class ZManager {
-    public static final ZManager INSTANCE = new ZManager();
-    private ZManager() {}
+    private static final ZManager INSTANCE = new ZManager();
 
-    /** Simulates the creation of a zone on the server using the provided payload.
-     * @param payload The payload containing zone data.
-     * @param ctx     The server play networking context.
-     */
-    public static void createZone(@NotNull ZoneRecuperationClientResponsePayload payload,
-                                  @NotNull Context ctx) {
+    private ZManager() { }
+
+    public static ZManager getInstance() {
+        return INSTANCE;
+    }
+
+    // ---- méthodes d'instance (pas static) ----
+    public void createZone(ZoneRecuperationClientResponsePayload payload, Context ctx) {
         System.out.println("Creating zone on server with " + payload.positions().size() + " positions.");
     }
 }
+
