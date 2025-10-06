@@ -75,6 +75,7 @@ public class ZoneWandPackets {
                 ZoneRecuperationClientResponsePayload.ID,
                 ZoneRecuperationClientResponsePayload.CODEC
         );
+        //ZManager is now a singleton
         registerGlobalReceiver(ZoneRecuperationClientResponsePayload.ID,
             (payload,
             ctx) -> ZManager.getInstance().createZone(payload, ctx));
