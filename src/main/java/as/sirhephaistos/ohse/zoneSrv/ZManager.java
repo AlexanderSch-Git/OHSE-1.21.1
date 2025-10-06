@@ -4,6 +4,7 @@ import as.sirhephaistos.ohse.network.ZoneRecuperationClientResponsePayload;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking.Context;
 import org.jetbrains.annotations.NotNull;
 
+@SuppressWarnings("unused")
 public final class ZManager {
     public static final ZManager INSTANCE = new ZManager();
     private ZManager() {}
