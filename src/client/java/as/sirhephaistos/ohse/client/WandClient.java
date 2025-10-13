@@ -9,6 +9,7 @@ import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.text.Text;
 import net.minecraft.util.hit.BlockHitResult;
@@ -21,6 +22,21 @@ import org.jetbrains.annotations.NotNull;
  * This class is set as the entry point in the `fabric.mod.json` file.
  */
 public class WandClient implements ClientModInitializer {
+
+    public static void onKey(String key, boolean isRepeat, int mods, ClientPlayerEntity player) {
+        //not fully implemented yet
+        switch (key) {
+            case "DELETE":
+                ZoneManager.clear();
+                break;
+            case "PAGE_UP":
+                onScroll(1,false,false);
+                break;
+            case "PAGE_DOWN":
+                onScroll(-1,false,false);
+                break;
+        }
+    }
 
     /**
      * Initializes the client-side logic for the Zone Wand.
@@ -184,24 +200,13 @@ public class WandClient implements ClientModInitializer {
                 }
                 ZoneManager.setYOffset(newOffset);
             } else {
-                double newSmallestY = ZoneManager.getSmallestY()+ dir;
-                if (ZoneManager.getYOffset() < 0) ZoneManager.setYOffset(0);
-                if (newSmallestY > ZoneManager.getSmallestY()) {
-                    if (ZoneManager.getYOffset() == 0) {
-                        ZoneManager.setEditingPositiveY(true);
-                        mc.player.sendMessage(Text.literal("[OHSE] Zone collapsed, switching to Top Y editing"), false);
-                        return;
-                    }
-                    ZoneManager.setYOffset(ZoneManager.getYOffset()  - dir);
-                }
+                double newSmallestY = ZoneManager.getSmallestY()+ dir; //  determines the new bottom Y
                 if (newSmallestY < -64) {
-                    mc.player.sendMessage(Text.literal("[OHSE] Cannot set Down Y above Top Y"), false);
+                    mc.player.sendMessage(Text.literal("[OHSE] You're going to deep -64max you're trying "+newSmallestY+";O"), false);
                     return;
                 }
-                if (newSmallestY > ZoneManager.getSmallestY() + ZoneManager.getYOffset()+1) {
-                    mc.player.sendMessage(Text.literal("[OHSE] Cannot set Down Y above top Y"), false);
-                    return;
-                }
+                ZoneManager.setSmallestY(ZoneManager.getYOffset() + dir); //adapt to follow the bottom modification
+                if (ZoneManager.getYOffset() < 0) ZoneManager.setYOffset(0); // prevent negative height shouldn't happen anyway
                 if(ZoneManager.getSmallestY() == 0){
                     ZoneManager.setEditingPositiveY(true);
                     mc.player.sendMessage(Text.literal("[OHSE] Zone collapsed, switching to Top Y editing"), false);

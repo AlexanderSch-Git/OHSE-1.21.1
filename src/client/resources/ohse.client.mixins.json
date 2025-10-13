@@ -5,7 +5,8 @@
 	"client": [
 		"ExampleClientMixin",
         "MouseScrollMixin",
-        "MouseButtonMixin"
+        "MouseButtonMixin",
+        "MoreControlsMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

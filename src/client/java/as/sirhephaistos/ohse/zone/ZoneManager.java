@@ -33,6 +33,9 @@ public final class ZoneManager {
      */
     public static void clear() {
         bottomPositions.clear();
+        smallestY = 0;
+        YOffset = 0;
+        editingPositiveY = true;
     }
     /**
      * Checks if the list of positions is empty.
