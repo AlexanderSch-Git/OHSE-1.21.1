@@ -39,17 +39,17 @@ public class OverhauledHordeSpawnEngine implements ModInitializer {
         ZoneWandPackets.registerS2CPackets();
         LOGGER.info("[OHSE]Packets registered.");
         // Initialize database connection pool
-        LOGGER.info("[OHSE]Initializing database...");
         ServerLifecycleEvents.SERVER_STARTING.register(server -> {
             try {
+                LOGGER.info("[OHSE]Initializing database...");
                 Database.init(server.getRunDirectory().resolve("config"));
                 ensureSchema();
+                LOGGER.info("[OHSE]Database initialized.");
             } catch (Exception e) {
                 LOGGER.error("[OHSE] Failed to initialize database: " + e.getMessage(),e);
             }
         });
-        ServerLifecycleEvents.SERVER_STOPPED.register(server -> Database.shutdown());
-        LOGGER.info("[OHSE]Database initialized.");
+
         LOGGER.info("[OHSE]Overhauled Horde Spawn Engine initialized.");
 	}
 }

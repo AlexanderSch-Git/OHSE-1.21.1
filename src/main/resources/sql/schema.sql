@@ -50,7 +50,7 @@ CREATE TABLE IF NOT EXISTS mobs (
 
   -- Spawn balance
   spawn_weight INT NOT NULL DEFAULT 10,
-  spawn_cap INT NOT NULL DEFAULT 0,                     -- 0 = no global limit
+  spawn_cap INT NOT NULL DEFAULT 64,                     -- 0 = no global limit
 
   -- Spawn space requirements
   squared_space_required_above_horizontal INT NOT NULL DEFAULT 3,  -- in blocks mean like a 3x3 area around the center
@@ -58,13 +58,13 @@ CREATE TABLE IF NOT EXISTS mobs (
   space_required_above INT NOT NULL DEFAULT 2,           -- in blocks means can't spawn under a low ceiling
   -- Group behavior
   group_min INT NOT NULL DEFAULT 1,
-  group_max INT NOT NULL DEFAULT 1,
+  group_max INT NOT NULL DEFAULT 5,
   group_distance INT NOT NULL DEFAULT 8,                -- radius in blocks
   can_be_group_leader BOOLEAN NOT NULL DEFAULT FALSE,
-  max_group_leaders_per_horde INT NOT NULL DEFAULT 1,
+  max_group_leaders_per_horde INT NULL,
   requires_leader BOOLEAN NOT NULL DEFAULT FALSE,
   required_leader_mob_id INT NULL,
-  required_leader_count INT NOT NULL DEFAULT 1,
+  required_leader_count INT NULL,
 
   tags TEXT NULL,
 
@@ -72,8 +72,10 @@ CREATE TABLE IF NOT EXISTS mobs (
   updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
   CONSTRAINT fk_required_leader
-      FOREIGN KEY (required_leader_mob_id) REFERENCES mobs(id)
-      ON DELETE RESTRICT
+        FOREIGN KEY (required_leader_mob_id) REFERENCES mobs(id) ON DELETE RESTRICT,
+
+    -- 🔒 Unicity on mod_id
+    UNIQUE KEY uq_mobs_modid (mod_id)
 ) ENGINE=InnoDB;
 
 -- --- Biomes table ----------------------------------
@@ -121,3 +123,4 @@ CREATE TABLE IF NOT EXISTS mob_leader_requirements (
   FOREIGN KEY (follower_mob_id) REFERENCES mobs(id) ON DELETE CASCADE,
   FOREIGN KEY (leader_mob_id) REFERENCES mobs(id) ON DELETE RESTRICT
 ) ENGINE=InnoDB;
+
