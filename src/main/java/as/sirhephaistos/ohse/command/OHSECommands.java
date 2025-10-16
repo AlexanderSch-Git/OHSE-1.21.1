@@ -6,10 +6,12 @@ import as.sirhephaistos.ohse.network.ZoneWandInitRecuperationPayload;
 import as.sirhephaistos.ohse.registry.OHSEItems;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.StringArgumentType;
+import devktl.sirhephaistos.ohse.compat.cobblemon.api.MobCatalogProvider;
+import devktl.sirhephaistos.ohse.compat.cobblemon.api.MobInfo;
+import devktl.sirhephaistos.ohse.compat.cobblemon.api.OHSECobblemonCompatAPI;
 import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
-import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.SpawnGroup;
 import net.minecraft.item.ItemStack;
@@ -23,8 +25,6 @@ import as.sirhephaistos.ohse.db.MobRepository;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
-import devktl.sirhephaistos.ohse.compat.cobblemon.api.OHSECobblemonCompatAPI;
-import devktl.sirhephaistos.ohse.compat.cobblemon.api.MobInfo;
 
 import static net.minecraft.server.command.CommandManager.literal;
 
@@ -107,7 +107,6 @@ public final class OHSECommands {
                                         return g != null && g != SpawnGroup.MISC;
                                     })
                                     .map(Registries.ENTITY_TYPE::getId)
-                                    .filter(Objects::nonNull)
                                     .map(Identifier::getNamespace)
                                     .collect(Collectors.toCollection(TreeSet::new));
                             for (String ns : namespaces) builder.suggest(ns);
@@ -121,7 +120,7 @@ public final class OHSECommands {
                                     .limit(10)
                                     .forEach(t -> {
                                         Identifier id = Registries.ENTITY_TYPE.getId(t);
-                                        if (id != null) builder.suggest(id.toString());
+                                        builder.suggest(id.toString());
                                     });
 
                             return CompletableFuture.completedFuture(builder.build());
@@ -150,7 +149,6 @@ public final class OHSECommands {
                                 selected = Registries.ENTITY_TYPE.stream()
                                         .filter(type -> {
                                             Identifier id = Registries.ENTITY_TYPE.getId(type);
-                                            if (id == null) return false;
                                             if (!id.getNamespace().equals(filter)) return false;
                                             SpawnGroup g = type.getSpawnGroup();
                                             return g != null && g != SpawnGroup.MISC;
@@ -172,7 +170,6 @@ public final class OHSECommands {
                                     List<MobRepository.SimpleMob> recs = new ArrayList<>(selected.size());
                                     for (EntityType<?> t : selected) {
                                         Identifier id = Registries.ENTITY_TYPE.getId(t);
-                                        if (id == null) continue;
                                         String modId = id.toString();
                                         String display = t.getName().getString();
                                         if (display.startsWith("entity.") || display.equalsIgnoreCase(id.toString())) {
@@ -203,55 +200,104 @@ public final class OHSECommands {
                 );
 
 
-        var testCompatibiltyAPIs = literal("testCompat")
+        var testCompat = literal("testCompat")
                 .requires(src -> Permissions.check(src, "ohse-admin", 3))
                 .executes(ctx -> {
-                    var source = ctx.getSource();
+                    ServerCommandSource src = ctx.getSource();
                     var loader = net.fabricmc.loader.api.FabricLoader.getInstance();
 
+                    // 0) Vérifs basiques
                     if (!loader.isModLoaded("cobblemon")) {
-                        source.sendFeedback(() -> net.minecraft.text.Text.literal("❌ Cobblemon not detected."), false);
+                        src.sendFeedback(() -> net.minecraft.text.Text.literal("❌ Cobblemon not detected."), false);
                         return 1;
-                    }//  ze need to add a verif for conpat nod exiting on server
-                    // Try instance-based API
-                    java.util.Map<String, java.util.List<devktl.sirhephaistos.ohse.compat.cobblemon.api.MobInfo>> map = java.util.Map.of();
+                    }
+
+                    // 1) Récup du catalogue via compat (instance ou provider legacy)
+                    Map<String, List<MobInfo>> map;
+
                     Object apiObj = loader.getObjectShare().get("ohse-cobble-compat:api");
-                    if (apiObj instanceof devktl.sirhephaistos.ohse.compat.cobblemon.api.OHSECobblemonCompatAPI api) {
+                    if (apiObj instanceof OHSECobblemonCompatAPI api) {
                         map = api.getMobCatalog();
                     } else {
-                        // Fallback: old provider key
                         Object provObj = loader.getObjectShare().get("ohse-cobble-compat:provider");
-                        if (provObj instanceof devktl.sirhephaistos.ohse.compat.cobblemon.api.MobCatalogProvider prov) {
+                        if (provObj instanceof MobCatalogProvider prov) {
                             map = prov.getAllMobs();
                         } else {
-                            source.sendFeedback(() -> net.minecraft.text.Text.literal("⚠️ Cobblemon detected, but compat API not published."), false);
+                            src.sendFeedback(() -> net.minecraft.text.Text.literal("⚠️ Cobblemon detected, but compat module not present/published on the server."), false);
                             return 1;
                         }
                     }
 
-                    var list = map.getOrDefault("cobblemon", java.util.List.of());
-                    int total = list.size();
-                    if (total == 0) {
-                        source.sendFeedback(() -> net.minecraft.text.Text.literal("⚠️ Compat ready but no species indexed yet (try after reload)."), false);
+                    if (map.isEmpty()) {
+                        src.sendFeedback(() -> net.minecraft.text.Text.literal("⚠️ Compat ready but no species indexed yet (try after reload)."), false);
                         return 1;
                     }
 
-                    int limit = Math.min(20, total); // avoid spam
-                    var sb = new StringBuilder();
-                    sb.append("✅ Cobblemon compat — ").append(total).append(" species.\n");
-                    for (int i = 0; i < limit; i++) {
-                        var m = list.get(i);
-                        sb.append(i + 1).append(". ")
-                                .append(m.displayName()).append("  (")
-                                .append(m.modId()).append(")  → ")
-                                .append(m.uuid()).append("\n");
-                    }
-                    if (total > limit) sb.append("...and ").append(total - limit).append(" more.");
+                    // 2) Aplatir et préparer les enregistrements pour la DB
+                    final List<MobRepository.SimpleMob> recs = new ArrayList<>();
+                    final List<String> preview = new ArrayList<>();
+                    final int previewLimit = 20;
+                    int total = 0;
 
-                    source.sendFeedback(() -> net.minecraft.text.Text.literal(sb.toString()), false);
+                    for (var entry : map.entrySet()) {
+                        String namespace = entry.getKey(); // ex: "cobblemon" (ou autre mod compat à l’avenir)
+                        var list = entry.getValue();
+                        for (var m : list) {
+                            // Sanitize display name
+                            String display = (m.displayName() == null || m.displayName().isBlank())
+                                    ? m.modId()
+                                    : m.displayName();
+                            // On garde l'UUID fourni par le compat (utile pour cross-ref)
+                            recs.add(new MobRepository.SimpleMob(m.uuid(), m.modId(), display));
+
+                            if (preview.size() < previewLimit) {
+                                preview.add(display + " (" + m.modId() + ") → " + m.uuid());
+                            }
+                            total++;
+                        }
+                    }
+
+                    if (recs.isEmpty()) {
+                        src.sendFeedback(() -> net.minecraft.text.Text.literal("⚠️ Compat map returned no mobs to import."), false);
+                        return 1;
+                    }
+
+                    int finalTotal = total;
+                    src.sendFeedback(() -> net.minecraft.text.Text.literal("[OHSE] Importing " + finalTotal + " compat mob(s)…"), false);
+
+                    // 3) Offload DB work
+                    DbExecutor.SINGLE.submit(() -> {
+                        try {
+                            // NB: on garde la même logique que registerMobs: skipIfExists = true (unicité sur mod_id côté repo)
+                            MobRepository.Result res = MobRepository.insertSimpleBatch(recs, /* skipIfExists = */ true);
+
+                            // 4) Feedback côté serveur (thread principal)
+                            src.getServer().execute(() -> {
+                                var sb = new StringBuilder();
+                                sb.append("[OHSE] Compat import done. Inserted: ")
+                                        .append(res.inserted())
+                                        .append(", skipped (already present): ")
+                                        .append(res.skipped())
+                                        .append("\n");
+
+                                for (int i = 0; i < preview.size(); i++) {
+                                    sb.append(i + 1).append(". ").append(preview.get(i)).append("\n");
+                                }
+                                if (finalTotal > previewLimit) {
+                                    sb.append("...and ").append(finalTotal - previewLimit).append(" more.");
+                                }
+
+                                src.sendFeedback(() -> net.minecraft.text.Text.literal(sb.toString()), false);
+                            });
+                        } catch (Exception e) {
+                            src.getServer().execute(() ->
+                                    src.sendError(net.minecraft.text.Text.literal("[OHSE] Compat import error: " + e.getMessage()))
+                            );
+                        }
+                    });
+
                     return 1;
-                })
-                ;
+                });
 
 
 
@@ -304,7 +350,7 @@ public final class OHSECommands {
         ohse.then(help);         // /ohse help
         ohse.then(cfg);
         ohse.then(registerMobs); // /ohse registerMobs
-        ohse.then(testCompatibiltyAPIs); // /ohse testCompat
+        ohse.then(testCompat); // /ohse testCompat
 
         // Enregistrement final
         dispatcher.register(ohse);
