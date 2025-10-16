@@ -216,8 +216,8 @@ public final class OHSECommands {
                     Map<String, List<MobInfo>> map;
 
                     Object apiObj = loader.getObjectShare().get("ohse-cobble-compat:api");
-                    if (apiObj instanceof OHSECobblemonCompatAPI api) {
-                        map = api.getMobCatalog();
+                    if (apiObj instanceof OHSECobblemonCompatAPI) {
+                        map = OHSECobblemonCompatAPI.getMobCatalog();
                     } else {
                         Object provObj = loader.getObjectShare().get("ohse-cobble-compat:provider");
                         if (provObj instanceof MobCatalogProvider prov) {
@@ -240,6 +240,7 @@ public final class OHSECommands {
                     int total = 0;
 
                     for (var entry : map.entrySet()) {
+                        @SuppressWarnings("unused")
                         String namespace = entry.getKey(); // ex: "cobblemon" (ou autre mod compat à l’avenir)
                         var list = entry.getValue();
                         for (var m : list) {
