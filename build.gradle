@@ -44,13 +44,12 @@ fabricApi {
 dependencies {
 	// To change the versions see the gradle.properties file
 	minecraft "com.mojang:minecraft:${project.minecraft_version}"
-	mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
+    mappings loom.officialMojangMappings()
 	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
-
 	// Fabric API. This is technically optional, but you probably want it anyway.
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
     modImplementation "net.fabricmc:fabric-language-kotlin:${project.fabric_kotlin_version}"
-
+    // Fabric Permissions API for luckperms support
     modImplementation 'me.lucko:fabric-permissions-api:0.3.1'
     // MySAL JDBC + HikariCP
     include(modImplementation("com.zaxxer:HikariCP:5.1.0"))
@@ -58,6 +57,7 @@ dependencies {
     // Lombok for the annotation processing of getters/setters
     compileOnly 'org.projectlombok:lombok:1.18.32'
     annotationProcessor 'org.projectlombok:lombok:1.18.32'
+    // Cobblemon combat
     modCompileOnly(":ohse-cobble-cpt-1.0.1")
     modRuntimeOnly(":ohse-cobble-cpt-1.0.1")
 }
